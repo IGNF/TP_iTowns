@@ -1,22 +1,22 @@
-# TP iTowns — Globe 3D de Paris
+# iTowns Lab — Paris 3D Globe
 
-Travaux pratiques pour construire un **visualiseur géographique 3D** centré sur Paris avec [iTowns](https://www.itowns-project.org/). Le globe combine les services de la Géoplateforme IGN (orthophoto, relief, bâtiments 3D) avec des jeux de données ouverts sur les transports, l'urbanisme et les risques d'inondation.
+Hands-on lab to build a **3D geographic viewer** centered on Paris with [iTowns](https://www.itowns-project.org/). The globe combines IGN Géoplateforme services (orthophoto, terrain relief, 3D buildings) with open datasets on transport, urban planning, and flood risk.
 
-## Objectifs
+## Goals
 
-- Apprendre à organiser une application iTowns autour de couches (`ElevationLayer`, `ColorLayer`, `FeatureGeometryLayer`…)
-- Connecter des services distants (WMTS, GeoJSON, tuiles vectorielles)
-- Superposer plusieurs thématiques dans une même scène 3D (réseau RATP, bâtiments extrudés, zones inondables de 1910)
+- Learn how to structure an iTowns application around layers (`ElevationLayer`, `ColorLayer`, `FeatureGeometryLayer`, etc.)
+- Connect to remote services (WMTS, GeoJSON, vector tiles)
+- Overlay multiple themes in a single 3D scene (RATP network, extruded buildings, 1910 floodable basement zones)
 
-## Prérequis
+## Prerequisites
 
 - Node.js 18+
-- Notions de base en JavaScript
-- Familiarité avec les concepts de cartographie web (couches, zoom, GeoJSON)
+- Basic JavaScript knowledge
+- Familiarity with web mapping concepts (layers, zoom levels, GeoJSON)
 
-## Démarrage rapide
+## Quick start
 
-La démo complète se trouve dans [`tp/step-09-project-structure/`](./tp/step-09-project-structure/) :
+The complete demo lives in [`tp/step-09-project-structure/`](./tp/step-09-project-structure/):
 
 ```bash
 cd tp/step-09-project-structure
@@ -24,38 +24,38 @@ npm install
 npm start
 ```
 
-Ouvrir [http://localhost:8080](http://localhost:8080). Ne pas ouvrir `public/index.html` directement — l'application doit passer par le serveur Webpack.
+Open [http://localhost:8080](http://localhost:8080). Do not open `public/index.html` directly — the app must be served through the Webpack dev server.
 
-## Étapes du TP
+## Lab steps
 
-Chaque dossier sous [`tp/`](./tp/) est un projet Webpack autonome correspondant à une étape du tutoriel :
+Each folder under [`tp/`](./tp/) is a self-contained Webpack project for one step of the tutorial:
 
-| Étape | Dossier | Contenu |
-|-------|---------|---------|
-| 0 | [step-00-setup](./tp/step-00-setup/) | GlobeView + orthophoto (starter webpack) |
-| 1 | [step-01-globeview](./tp/step-01-globeview/) | Caméra centrée sur Paris |
-| 2 | [step-02-ign-basemap](./tp/step-02-ign-basemap/) | Couches d'élévation IGN |
-| 3 | [step-03-transport](./tp/step-03-transport/) | Lignes métro/tram/RER + gares RATP |
-| 4 | [step-04-buildings-3d](./tp/step-04-buildings-3d/) | Bâtiments 3D (BD Topo) |
-| 5 | [step-05-flood-risk](./tp/step-05-flood-risk/) | Caves inondables (1910) |
-| 6 | *(documentation uniquement)* | LiDAR HD (EPT) — extension optionnelle |
-| 7 | [step-07-layer-menu](./tp/step-07-layer-menu/) | Menu de bascule des couches |
-| 8 | [step-08-widgets](./tp/step-08-widgets/) | Minimap + widgets de navigation |
-| 9 | [step-09-project-structure](./tp/step-09-project-structure/) | Structure finale du projet |
+| Step | Folder | Content |
+|------|--------|---------|
+| 0 | [step-00-setup](./tp/step-00-setup/) | GlobeView + orthophoto (webpack starter) |
+| 1 | [step-01-globeview](./tp/step-01-globeview/) | Camera focused on Paris |
+| 2 | [step-02-ign-basemap](./tp/step-02-ign-basemap/) | IGN elevation layers |
+| 3 | [step-03-transport](./tp/step-03-transport/) | Metro/tram/RER lines + RATP stations |
+| 4 | [step-04-buildings-3d](./tp/step-04-buildings-3d/) | 3D buildings (BD Topo) |
+| 5 | [step-05-flood-risk](./tp/step-05-flood-risk/) | Floodable basements (1910) |
+| 6 | *(documentation only)* | LiDAR HD (EPT) — optional extension |
+| 7 | [step-07-layer-menu](./tp/step-07-layer-menu/) | Layer toggle menu |
+| 8 | [step-08-widgets](./tp/step-08-widgets/) | Minimap + navigation widgets |
+| 9 | [step-09-project-structure](./tp/step-09-project-structure/) | Final project structure |
 
-Pour lancer une étape :
+To run a specific step:
 
 ```bash
-cd tp/step-03-transport   # remplacer par l'étape souhaitée
+cd tp/step-03-transport   # replace with the desired step
 npm install
 npm start
 ```
 
 ## Documentation
 
-Le guide détaillé (concepts, code commenté, dépannage) est dans **[TP.md](./TP.md)**.
+The detailed guide (concepts, annotated code, troubleshooting) is in **[TP.md](./TP.md)**.
 
-La vue d'ensemble des snapshots de code est dans **[tp/README.md](./tp/README.md)**.
+An overview of the code snapshots is in **[tp/README.md](./tp/README.md)**.
 
 ## Stack
 
@@ -63,12 +63,12 @@ La vue d'ensemble des snapshots de code est dans **[tp/README.md](./tp/README.md
 - [itowns-starter-webpack](https://github.com/Desplandis/itowns-starter-webpack)
 - Webpack 5 · Three.js · proj4
 
-## Sources de données
+## Data sources
 
-- **IGN** — orthophotos, MNT, BD Topo ([Géoplateforme](https://geoservices.ign.fr/))
-- **Île-de-France Mobilités** — réseau ferré et gares ([PRIM](https://prim.iledefrance-mobilites.fr/))
-- **Paris Open Data** — zones de caves inondées (1910) ([opendata.paris.fr](https://opendata.paris.fr/))
+- **IGN** — orthophotos, elevation (MNT), BD Topo ([Géoplateforme](https://geoservices.ign.fr/))
+- **Île-de-France Mobilités** — rail network and stations ([PRIM](https://prim.iledefrance-mobilites.fr/))
+- **Paris Open Data** — floodable basement zones (1910) ([opendata.paris.fr](https://opendata.paris.fr/))
 
-## Licence
+## License
 
-MIT — voir [LICENSE](./LICENSE). Copyright © 2026 IGN.
+MIT — see [LICENSE](./LICENSE). Copyright © 2026 IGN.
