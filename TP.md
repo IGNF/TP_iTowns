@@ -4,7 +4,7 @@
 
 **Stack:** [itowns-starter-webpack](https://github.com/Desplandis/itowns-starter-webpack) · Webpack 5 · JavaScript/TypeScript · iTowns 2.46 · GlobeView
 
-> **Source code:** Each step has a self-contained webpack snapshot in [`tp/`](./tp/README.md). Run any step with `npm run tp:NN` from the project root (after `npm install` in that step folder). The complete demo at the root matches [`tp/step-09-project-structure/`](./tp/step-09-project-structure/).
+> **Source code:** Each step has a self-contained webpack snapshot in [`tp/`](./tp/README.md). Run any step with `npm run tp:NN` from the project root (after `npm install` in that step folder). The complete demo is in [`tp/step-11-gltf-scene/`](./tp/step-11-gltf-scene/).
 
 > **Starter repository:** [Desplandis/itowns-starter-webpack](https://github.com/Desplandis/itowns-starter-webpack/tree/master)
 
@@ -449,7 +449,7 @@ For a cityscape effect, we need actual 3D geometry.
 | **File** | `src/layers/batiments-3d.js` |
 | **Layer ID** | `batiments-bdtopo` |
 | **Layer type** | `FeatureGeometryLayer` |
-| **Menu group** | Urbanisme |
+| **Menu group** | Urban planning |
 | **Min zoom** | 15 |
 
 **Data source:** IGN Plan vector tiles
@@ -521,7 +521,7 @@ This is the simplest vector layer in the project: a static GeoJSON file, no dyna
 | **File** | `src/layers/caves-inondees-1910.js` |
 | **Layer ID** | `caves-inondees-1910` |
 | **Layer type** | `ColorLayer` |
-| **Menu group** | Risques |
+| **Menu group** | Risk |
 | **Min zoom** | 10 |
 
 **Data source:** [Paris Open Data — Zones de caves inondées (1910)](https://opendata.paris.fr/explore/dataset/zones-de-caves-inondees-1910/)
@@ -540,9 +540,119 @@ https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/zones-de-caves-inond
 
 ---
 
-## Step 6 — LiDAR HD point cloud (EPT)
+## Step 6 — Layer toggle menu
 
-> **Note:** This step is documented as an optional extension. No code snapshot is provided in `tp/` (steps 0–5, 7–9 are available).
+> **Code:** [`tp/step-06-layer-menu/`](./tp/step-06-layer-menu/)
+
+### What we are doing
+
+With four overlay layers, the scene becomes cluttered. We build a **layer control panel** — a sidebar with checkboxes grouped by theme — so the user can show/hide each dataset independently.
+
+| Property | Value |
+|----------|-------|
+| **Files** | `src/ui/layer-menu.js`, `public/styles/itowns.css` |
+
+### 6.1 Registration pattern
+
+Layers are decoupled from the menu. Each layer module exports an `addXxxLayer(view)` function that returns a Promise. In `app.js`, we register menu entries:
+
+```javascript
+function registerLayer(id, label, promise, group) {
+    layerMenuItems.push({ id, label, whenReady: promise, group });
+}
+
+registerLayer('lignes-ferre', 'Metro, tram and RER lines', addLignesMetroTramLayer(view), 'Transport');
+// ...
+
+createLayerMenu(view, layerMenuItems);
+```
+
+This separation means you can add a new layer by creating one file + one `registerLayer()` call, without modifying the menu code.
+
+**Menu groups (in display order):**
+
+| Group | Layers |
+|-------|--------|
+| Transport | Metro/tram/RER lines, RATP stations |
+| Urban planning | 3D buildings |
+| Risk | 1910 floodable basements |
+
+### 6.2 Aligned layout
+
+Each row is a `<label>` with two cells: a fixed-width checkbox column and a label column. CSS Grid keeps every checkbox vertically aligned, even when labels wrap onto two lines:
+
+```javascript
+// layer-menu.js — one row per layer
+const row = document.createElement('label');
+row.className = 'layer-menu__row';
+
+const checkCell = document.createElement('span');
+checkCell.className = 'layer-menu__check';
+checkCell.appendChild(checkbox);
+
+const label = document.createElement('span');
+label.className = 'layer-menu__label';
+label.textContent = item.label;
+
+row.append(checkCell, label);
+```
+
+```css
+/* itowns.css */
+.layer-menu__row {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    align-items: center;
+    min-height: 2.25rem;
+}
+
+.layer-menu__check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+}
+```
+
+Group titles share the same left padding as the label column so section headers line up with layer names.
+
+### 6.3 Menu behavior
+
+- Each checkbox starts **disabled** (grayed out) while the layer Promise is pending
+- Once the layer loads, the checkbox becomes active and reflects the layer's visibility
+- If loading fails (network error, API down), the row shows an error state: *"(unavailable)"*
+- The panel is collapsible via a header button (chevron rotates when collapsed)
+
+### 6.4 Tile refresh on visibility change — why it matters
+
+This was another bug we discovered during development.
+
+**Expected behavior:** Uncheck "Metro lines" → lines disappear from the globe.
+
+**Actual behavior (without fix):** Lines remained painted on the globe even though `layer.visible` was set to `false`.
+
+**Explanation:** Vector features in a `ColorLayer` are not rendered as independent scene objects. They are **rasterized** (drawn) onto the globe's tile textures — essentially baked into a canvas that wraps the terrain. When you toggle visibility, iTowns updates the layer flag but does not automatically re-rasterize all affected tiles.
+
+**Fix** (implemented in `src/utils/tile-refresh.js`):
+
+```javascript
+layer.visible = visible;
+
+const labelLayer = view.getLayerById(`${layer.id}-label`);
+if (labelLayer) labelLayer.visible = visible;
+
+markAllTilesForUpdate(view);
+```
+
+The `layersNeedUpdate` flag is a general mechanism for telling iTowns "the painted content of tiles has changed, please redraw."
+
+**What you should see:** A "Layers" panel on the left with aligned checkboxes and group headers. Checking/unchecking layers immediately shows or hides them on the globe. Station labels toggle together with station points.
+
+---
+
+## Optional extension — LiDAR HD point cloud (EPT)
+
+> **Note:** This extension is documented below but has no code snapshot in `tp/`. Steps 0–8, 10 and 11 are available as webpack projects.
 
 ### What we are doing
 
@@ -658,125 +768,15 @@ The layer is **off by default** in the menu (`defaultVisible: false`) — enable
 
 ---
 
-## Step 7 — Layer toggle menu
+## Step 7 — Navigation widgets
 
-> **Code:** [`tp/step-07-layer-menu/`](./tp/step-07-layer-menu/) — run with `npm run tp:07`
-
-### What we are doing
-
-With four overlay layers, the scene becomes cluttered. We build a **layer control panel** — a sidebar with checkboxes grouped by theme — so the user can show/hide each dataset independently.
-
-| Property | Value |
-|----------|-------|
-| **Files** | `src/ui/layer-menu.js`, `public/styles/itowns.css` |
-
-### 7.1 Registration pattern
-
-Layers are decoupled from the menu. Each layer module exports an `addXxxLayer(view)` function that returns a Promise. In `app.js`, we register menu entries:
-
-```javascript
-function registerLayer(id, label, promise, group) {
-    layerMenuItems.push({ id, label, whenReady: promise, group });
-}
-
-registerLayer('lignes-ferre', 'Lignes métro, tram, RER', addLignesMetroTramLayer(view), 'Transport');
-// ...
-
-createLayerMenu(view, layerMenuItems);
-```
-
-This separation means you can add a new layer by creating one file + one `registerLayer()` call, without modifying the menu code.
-
-**Menu groups (in display order):**
-
-| Group | Layers |
-|-------|--------|
-| Transport | Metro/tram/RER lines, RATP stations |
-| Urbanisme | 3D buildings |
-| Risques | 1910 floodable basements |
-
-### 7.2 Aligned layout
-
-Each row is a `<label>` with two cells: a fixed-width checkbox column and a label column. CSS Grid keeps every checkbox vertically aligned, even when labels wrap onto two lines:
-
-```javascript
-// layer-menu.js — one row per layer
-const row = document.createElement('label');
-row.className = 'layer-menu__row';
-
-const checkCell = document.createElement('span');
-checkCell.className = 'layer-menu__check';
-checkCell.appendChild(checkbox);
-
-const label = document.createElement('span');
-label.className = 'layer-menu__label';
-label.textContent = item.label;
-
-row.append(checkCell, label);
-```
-
-```css
-/* itowns.css */
-.layer-menu__row {
-    display: grid;
-    grid-template-columns: 2.25rem 1fr;
-    align-items: center;
-    min-height: 2.25rem;
-}
-
-.layer-menu__check {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-}
-```
-
-Group titles share the same left padding as the label column so section headers line up with layer names.
-
-### 7.3 Menu behavior
-
-- Each checkbox starts **disabled** (grayed out) while the layer Promise is pending
-- Once the layer loads, the checkbox becomes active and reflects the layer's visibility
-- If loading fails (network error, API down), the row shows an error state: *"(indisponible)"*
-- The panel is collapsible via a header button (chevron rotates when collapsed)
-
-### 7.4 Tile refresh on visibility change — why it matters
-
-This was another bug we discovered during development.
-
-**Expected behavior:** Uncheck "Lignes métro" → lines disappear from the globe.
-
-**Actual behavior (without fix):** Lines remained painted on the globe even though `layer.visible` was set to `false`.
-
-**Explanation:** Vector features in a `ColorLayer` are not rendered as independent scene objects. They are **rasterized** (drawn) onto the globe's tile textures — essentially baked into a canvas that wraps the terrain. When you toggle visibility, iTowns updates the layer flag but does not automatically re-rasterize all affected tiles.
-
-**Fix** (implemented in `src/utils/tile-refresh.js`):
-
-```javascript
-layer.visible = visible;
-
-const labelLayer = view.getLayerById(`${layer.id}-label`);
-if (labelLayer) labelLayer.visible = visible;
-
-markAllTilesForUpdate(view);
-```
-
-The `layersNeedUpdate` flag is a general mechanism for telling iTowns "the painted content of tiles has changed, please redraw."
-
-**What you should see:** A "Couches" panel on the left with aligned checkboxes and group headers. Checking/unchecking layers immediately shows or hides them on the globe. Station labels toggle together with station points.
-
----
-
-## Step 8 — Navigation widgets
-
-> **Code:** [`tp/step-08-widgets/`](./tp/step-08-widgets/) — run with `npm run tp:08`
+> **Code:** [`tp/step-07-widgets/`](./tp/step-07-widgets/)
 
 ### What we are doing
 
 We add two **UI widgets** from the iTowns widgets library to improve navigation. These are not data layers — they are interactive controls.
 
-### 8.1 Minimap
+### 7.1 Minimap
 
 The minimap provides a 2D overview of the current view extent, helping users orient themselves when tilted at 45°.
 
@@ -786,7 +786,7 @@ The minimap provides a 2D overview of the current view extent, helping users ori
 
 This requires a separate view instance internally — the widget manages it.
 
-### 8.2 Navigation controls
+### 7.2 Navigation controls
 
 The `Navigation` widget adds standard buttons (zoom in/out, compass, tilt) in the bottom-right corner. It accepts a `translate: { y: -40 }` offset to avoid overlapping with the attribution bar.
 
@@ -794,9 +794,9 @@ The `Navigation` widget adds standard buttons (zoom in/out, compass, tilt) in th
 
 ---
 
-## Step 9 — Project structure (final)
+## Step 8 — Project structure
 
-> **Code:** [`tp/step-09-project-structure/`](./tp/step-09-project-structure/) — run with `npm run tp:09`
+> **Code:** [`tp/step-08-project-structure/`](./tp/step-08-project-structure/)
 
 ### Lab project (webpack starter path)
 
@@ -822,7 +822,7 @@ itowns_tp/
 
 ### Complete demo
 
-The final application lives at the project root (`npm start`) and in [`tp/step-09-project-structure/`](./tp/step-09-project-structure/):
+The application structure is consolidated in [`tp/step-08-project-structure/`](./tp/step-08-project-structure/). The complete demo with all 3D models is in [`tp/step-11-gltf-scene/`](./tp/step-11-gltf-scene/).
 
 ```
 itowns_tp/
@@ -842,6 +842,131 @@ itowns_tp/
 
 ---
 
+## Step 10 — Collada 3D model (Tour Eiffel)
+
+> **Code:** [`tp/step-10-tour-eiffel/`](./tp/step-10-tour-eiffel/)
+
+### What we are doing
+
+We load a **SketchUp Collada model** (`.dae`) of the Eiffel Tower and place it on the globe. Collada is a common 3D exchange format, especially from CAD and SketchUp workflows. Step 11 adds a glTF model for comparison.
+
+Unlike glTF, there is no dedicated iTowns loader — we use the Three.js `ColladaLoader` directly, following the [official iTowns Collada example](https://github.com/iTowns/itowns/blob/master/examples/misc_collada.html).
+
+| Property | Value |
+|----------|-------|
+| **File** | `src/layers/tour-eiffel-dae.js` |
+| **Model** | `data/tour_eiffel/Tour_Eiffel.dae` |
+| **Menu group** | Heritage |
+| **Location** | Tour Eiffel (2.294694° E, 48.858093° N) |
+
+### Data source
+
+The model and its textures live in [`data/tour_eiffel/`](./data/tour_eiffel/). The Collada file declares `up_axis` as **Z-up** (SketchUp convention, compatible with iTowns) and uses **inches** as its unit (`meter="0.0254"`).
+
+### Loading and positioning
+
+```javascript
+import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
+
+const coord = new itowns.Coordinates('EPSG:4326', 2.294694, 48.858093, 35);
+loader.load('./models/tour-eiffel/Tour_Eiffel.dae', (collada) => {
+    const model = collada.scene;
+
+    // ColladaLoader rotates Z-up → Y-up; undo for iTowns Z-up (ENU)
+    model.rotation.set(0, 0, 0);
+    model.scale.multiplyScalar(250);
+
+    model.position.copy(coord.as(view.referenceCrs));
+    model.lookAt(model.position.clone().add(coord.geodesicNormal));
+    model.updateMatrixWorld(true);
+
+    view.scene.add(model);
+    view.notifyChange();
+});
+```
+
+**Key differences from glTF (Step 11):**
+
+| | glTF (Step 11) | Collada (Step 10) |
+|---|--------------|-------------------|
+| Loader | `iGLTFLoader` (iTowns) | `ColladaLoader` (Three.js) |
+| Up axis | Y-up → `rotateX(π/2)` on globe | Z-up → loader converts to Y-up, reset rotation for ENU |
+| Units | Meters | Inches → converted by loader (`× 0.0254`), then visibility scale |
+| Orientation | `rotateX` + `lookAt` | `rotation.set(0,0,0)` + `lookAt` |
+
+**What you should see:** The camera starts near the Champ de Mars (800 m range). After the basemap loads, a textured Eiffel Tower model appears in the **Heritage** group.
+
+---
+
+## Step 11 — glTF 3D model (Notre-Dame photogrammetry)
+
+> **Code:** [`tp/step-11-gltf-scene/`](./tp/step-11-gltf-scene/)
+
+### What we are doing
+
+We load a **photogrammetric 3D model** of Notre-Dame cathedral as a glTF file and place it on the globe at the correct geographic coordinates. Unlike extruded BD Topo buildings (which are generated from vector footprints), this is a detailed mesh with textures — the kind of asset produced by photogrammetry or 3D modelling tools.
+
+This step introduces a different iTowns pattern: loading an external 3D asset with `iGLTFLoader` and adding it directly to the Three.js scene, positioned with the `Coordinates` API. The snapshot also includes the Tour Eiffel Collada model from Step 10.
+
+| Property | Value |
+|----------|-------|
+| **File** | `src/layers/scene-gltf.js` |
+| **Model** | `data/notre_dame_crowdsourced_photogrammetry/scene.gltf` |
+| **Menu group** | Heritage |
+| **Location** | Notre-Dame (2.349902° E, 48.852968° N) |
+
+### Data source
+
+The model lives in [`data/notre_dame_crowdsourced_photogrammetry/`](./data/notre_dame_crowdsourced_photogrammetry/) at the repository root. Each step serves it through `public/models/notre-dame/` (symlink to the shared data folder).
+
+### Loading and positioning
+
+iTowns provides `iGLTFLoader` (based on Three.js GLTFLoader). After loading, we:
+
+1. Convert WGS84 coordinates to the view's reference CRS (`EPSG:4978` on a `GlobeView`)
+2. Copy the resulting position to the model's `position`
+3. Align the model's Y-up axis with the local **geodesic normal** so it sits upright on the globe surface
+
+```javascript
+const coord = new itowns.Coordinates('EPSG:4326', 2.349902, 48.852968, 35);
+const loader = new itowns.iGLTFLoader();
+
+loader.load('./models/notre-dame/scene.gltf', (gltf) => {
+    const model = gltf.scene;
+
+    // glTF is Y-up, iTowns is Z-up
+    model.rotateX(Math.PI / 2);
+    model.position.copy(coord.as(view.referenceCrs));
+    model.lookAt(model.position.clone().add(coord.geodesicNormal));
+    model.updateMatrixWorld(true);
+
+    view.scene.add(model);
+    view.notifyChange();
+});
+```
+
+**Key concepts:**
+
+| Concept | Role |
+|---------|------|
+| `iGLTFLoader` | Loads `.gltf` / `.glb` files into a Three.js scene graph |
+| `Coordinates.as(crs)` | Reprojects coordinates to the view CRS |
+| `geodesicNormal` | Unit vector perpendicular to the globe at a given point |
+| `view.scene.add(...)` | Adds a free-standing 3D object outside the layer stack |
+| `view.notifyChange()` | Tells iTowns to re-render after a manual scene change |
+
+### Why not a layer?
+
+Layers (`ColorLayer`, `FeatureGeometryLayer`, etc.) are designed for geospatial data streamed as tiles or features. A single glTF asset at a fixed location is simpler to manage as a direct scene object. We wrap it in a lightweight controller object (with a `visible` getter/setter) so the layer menu can toggle it.
+
+### Complete demo
+
+The latest snapshot with all layers (Notre-Dame glTF and Tour Eiffel Collada) is [`tp/step-11-gltf-scene/`](./tp/step-11-gltf-scene/).
+
+**What you should see:** Both heritage models are toggled from the **Heritage** group. Fly to Notre-Dame to inspect the photogrammetry mesh, then to the Champ de Mars for the Eiffel Tower Collada model.
+
+---
+
 ## Summary — All data layers
 
 | Layer ID | Label (menu) | Type | Source | Group | Min zoom |
@@ -849,10 +974,12 @@ itowns_tp/
 | `MNT_WORLD_SRTM3` | *(basemap)* | ElevationLayer | IGN WMTS SRTM | — | — |
 | `ign-mnt-highres` | *(basemap)* | ElevationLayer | IGN WMTS MNT | — | — |
 | `Ortho` | *(basemap)* | ColorLayer | IGN WMTS orthophoto | — | — |
-| `batiments-bdtopo` | Bâtiments 3D | FeatureGeometryLayer | IGN vector tiles | Urbanisme | 15 |
-| `lignes-ferre` | Lignes métro, tram, RER | ColorLayer | IDFM GeoJSON | Transport | 11 |
-| `gares-ratp` | Gares RATP | ColorLayer + labels | IDFM GeoJSON | Transport | 12 |
-| `caves-inondees-1910` | Caves inondables (1910) | ColorLayer | Paris Data GeoJSON | Risques | 10 |
+| `batiments-bdtopo` | 3D Buildings | FeatureGeometryLayer | IGN vector tiles | Urban planning | 15 |
+| `lignes-ferre` | Metro, tram and RER lines | ColorLayer | IDFM GeoJSON | Transport | 11 |
+| `gares-ratp` | RATP stations | ColorLayer + labels | IDFM GeoJSON | Transport | 12 |
+| `caves-inondees-1910` | Floodable basements (1910) | ColorLayer | Paris Data GeoJSON | Risk | 10 |
+| `notre-dame-gltf` | Notre-Dame (photogrammetry) | Scene object (glTF) | Local `scene.gltf` | Heritage | — |
+| `tour-eiffel-dae` | Tour Eiffel (Collada) | Scene object (Collada) | Local `Tour_Eiffel.dae` | Heritage | — |
 | `lidar-hd-ept` | LiDAR HD (EPT) | EntwinePointTileLayer | IGN Géoplateforme EPT | Relief | — |
 | `minimap` | *(widget)* | ColorLayer | IGN vector tiles | — | — |
 
@@ -867,6 +994,9 @@ itowns_tp/
 | Vector layer toggle has no effect | Globe tile cache not refreshed | Set `material.layersNeedUpdate = true` |
 | Transport lines/stations all grey | Style callback uses `feature.properties` instead of `properties` | Pass `(properties) => …` — iTowns injects attributes directly |
 | Buildings missing | Zoom too low or IGN not loaded | Zoom ≥ 15, await IGN layers first |
+| glTF model not visible | IGN basemap not loaded yet or wrong URL | Await elevation layers; check `./models/notre-dame/scene.gltf` in Network tab |
+| Collada model not visible | Model too small (~1.2 m) or wrong axis after loader | Reset rotation (`rotation.set(0,0,0)`), apply visibility scale (`× 250`), use `lookAt` |
+| Collada textures missing | Texture paths relative to `.dae` file | Serve the whole `data/tour_eiffel/` folder via webpack `static` |
 | LiDAR HD not visible | Layer off by default or camera outside Paris | Enable in menu, zoom in over Paris |
 | LiDAR HD slow / freezes | Point budget too high | Reduce `pointBudget`, increase `sseThreshold` |
 | Station labels out of sync | Label layer not toggled | Toggle `{layerId}-label` alongside main layer |
@@ -895,7 +1025,7 @@ npm start
 Shortcuts from the project root (requires `npm install` in the step folder first):
 
 ```bash
-npm run tp:00    # … through tp:05, tp:07, tp:08, tp:09
+npm run tp:00    # … through tp:08, tp:10, tp:11
 ```
 
 ---
@@ -917,6 +1047,8 @@ After completing this lab, you should be able to:
 3. Set up an iTowns `GlobeView` with IGN WMTS basemap services
 4. Connect to a GeoJSON API with `FileSource` and style features (points, lines, polygons)
 5. Extrude 3D buildings from IGN vector tiles using height attributes
-6. Stream LiDAR HD point clouds (EPT) with a point budget and Paris bounding guard
-7. Build a layer visibility UI that correctly refreshes globe tile rendering
-8. Diagnose common iTowns issues: bundler setup, tile cache staleness, label layer coupling, point cloud performance
+6. Load and georeference a glTF 3D model with `iGLTFLoader` and the `Coordinates` API
+7. Load and georeference a Collada model with Three.js `ColladaLoader`
+8. Stream LiDAR HD point clouds (EPT) with a point budget and Paris bounding guard
+9. Build a layer visibility UI that correctly refreshes globe tile rendering
+10. Diagnose common iTowns issues: bundler setup, tile cache staleness, label layer coupling, point cloud performance

@@ -1,6 +1,6 @@
 # step-02-ign-basemap
 
-Snapshot du code à l'étape correspondante du [TP](../TP.md).
+Code snapshot for the corresponding [lab step](../TP.md).
 
 ```bash
 npm install

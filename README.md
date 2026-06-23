@@ -16,10 +16,10 @@ Hands-on lab to build a **3D geographic viewer** centered on Paris with [iTowns]
 
 ## Quick start
 
-The complete demo lives in [`tp/step-09-project-structure/`](./tp/step-09-project-structure/):
+The complete demo lives in [`tp/step-11-gltf-scene/`](./tp/step-11-gltf-scene/):
 
 ```bash
-cd tp/step-09-project-structure
+cd tp/step-11-gltf-scene
 npm install
 npm start
 ```
@@ -38,10 +38,11 @@ Each folder under [`tp/`](./tp/) is a self-contained Webpack project for one ste
 | 3 | [step-03-transport](./tp/step-03-transport/) | Metro/tram/RER lines + RATP stations |
 | 4 | [step-04-buildings-3d](./tp/step-04-buildings-3d/) | 3D buildings (BD Topo) |
 | 5 | [step-05-flood-risk](./tp/step-05-flood-risk/) | Floodable basements (1910) |
-| 6 | *(documentation only)* | LiDAR HD (EPT) — optional extension |
-| 7 | [step-07-layer-menu](./tp/step-07-layer-menu/) | Layer toggle menu |
-| 8 | [step-08-widgets](./tp/step-08-widgets/) | Minimap + navigation widgets |
-| 9 | [step-09-project-structure](./tp/step-09-project-structure/) | Final project structure |
+| 6 | [step-06-layer-menu](./tp/step-06-layer-menu/) | Layer toggle menu |
+| 7 | [step-07-widgets](./tp/step-07-widgets/) | Minimap + navigation widgets |
+| 8 | [step-08-project-structure](./tp/step-08-project-structure/) | Final project structure |
+| 10 | [step-10-tour-eiffel](./tp/step-10-tour-eiffel/) | Tour Eiffel Collada model |
+| 11 | [step-11-gltf-scene](./tp/step-11-gltf-scene/) | Notre-Dame glTF photogrammetry |
 
 To run a specific step:
 

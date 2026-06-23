@@ -32,19 +32,19 @@ const ignLayersPromise = Promise.all([
     addElevationLayer(ignMntHighresConfig),
     addColorLayer(orthoConfig),
 ]).catch((error) => {
-    console.error('Impossible de charger les couches IGN :', error);
+    console.error('Failed to load IGN layers:', error);
 });
 
 ignLayersPromise.then(() => addBatiments3DLayer(view)).catch((error) => {
-    console.error('Impossible de charger les bâtiments 3D :', error);
+    console.error('Failed to load 3D buildings:', error);
 });
 
 addLignesMetroTramLayer(view).catch((error) => {
-    console.error('Impossible de charger les lignes métro, tram et RER :', error);
+    console.error('Failed to load metro, tram and RER lines:', error);
 });
 
 addGaresRatpLayer(view).catch((error) => {
-    console.error('Impossible de charger les gares RATP :', error);
+    console.error('Failed to load RATP stations:', error);
 });
 
 window.view = view;

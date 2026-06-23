@@ -31,15 +31,15 @@ Promise.all([
     addElevationLayer(ignMntHighresConfig),
     addColorLayer(orthoConfig),
 ]).catch((error) => {
-    console.error('Impossible de charger les couches IGN :', error);
+    console.error('Failed to load IGN layers:', error);
 });
 
 addLignesMetroTramLayer(view).catch((error) => {
-    console.error('Impossible de charger les lignes métro, tram et RER :', error);
+    console.error('Failed to load metro, tram and RER lines:', error);
 });
 
 addGaresRatpLayer(view).catch((error) => {
-    console.error('Impossible de charger les gares RATP :', error);
+    console.error('Failed to load RATP stations:', error);
 });
 
 window.view = view;

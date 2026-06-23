@@ -29,7 +29,7 @@ Promise.all([
     addElevationLayer(ignMntHighresConfig),
     addColorLayer(orthoConfig),
 ]).catch((error) => {
-    console.error('Impossible de charger les couches IGN :', error);
+    console.error('Failed to load IGN layers:', error);
 });
 
 window.view = view;

@@ -1,6 +1,6 @@
 # Lab source code — step-by-step snapshots
 
-Each subfolder contains a **self-contained webpack project** at that stage of the [TP](../TP.md). Step 6 (LiDAR HD) is documented in the TP but has no snapshot folder.
+Each subfolder contains a **self-contained webpack project** at that stage of the [TP](../TP.md). LiDAR HD (EPT) is documented in the TP as an optional extension without a snapshot folder.
 
 ## Folder structure
 
@@ -12,9 +12,11 @@ tp/
 ├── step-03-transport/          Metro/tram/RER lines + RATP stations
 ├── step-04-buildings-3d/       Extruded BD Topo buildings
 ├── step-05-flood-risk/         1910 floodable basement zones
-├── step-07-layer-menu/         Checkbox layer toggle panel
-├── step-08-widgets/            Minimap + navigation widgets
-└── step-09-project-structure/  Final layout (index.js → app.js)
+├── step-06-layer-menu/         Checkbox layer toggle panel
+├── step-07-widgets/            Minimap + navigation widgets
+├── step-08-project-structure/  Final layout (index.js → app.js)
+├── step-10-tour-eiffel/        Tour Eiffel Collada model
+└── step-11-gltf-scene/         Notre-Dame glTF + complete demo
 ```
 
 ## How to run a step
@@ -33,7 +35,7 @@ npm install
 npm start        # → http://localhost:8080
 ```
 
-The complete demo at the project root (`npm start`) matches **step-09-project-structure**.
+The complete demo is in **step-11-gltf-scene** (Notre-Dame glTF + Tour Eiffel Collada).
 
 ## Mapping to TP.md
 
@@ -45,10 +47,12 @@ The complete demo at the project root (`npm start`) matches **step-09-project-st
 | Step 3 — Transport | [step-03-transport](./step-03-transport/) |
 | Step 4 — 3D buildings | [step-04-buildings-3d](./step-04-buildings-3d/) |
 | Step 5 — Flood risk | [step-05-flood-risk](./step-05-flood-risk/) |
-| Step 6 — LiDAR HD (EPT) | *(no snapshot — optional extension)* |
-| Step 7 — Layer menu | [step-07-layer-menu](./step-07-layer-menu/) |
-| Step 8 — Widgets | [step-08-widgets](./step-08-widgets/) |
-| Step 9 — Project structure | [step-09-project-structure](./step-09-project-structure/) |
+| Step 6 — Layer menu | [step-06-layer-menu](./step-06-layer-menu/) |
+| LiDAR HD (EPT) | *(optional extension — see TP.md)* |
+| Step 7 — Widgets | [step-07-widgets](./step-07-widgets/) |
+| Step 8 — Project structure | [step-08-project-structure](./step-08-project-structure/) |
+| Step 10 — Tour Eiffel (Collada) | [step-10-tour-eiffel](./step-10-tour-eiffel/) |
+| Step 11 — glTF model | [step-11-gltf-scene](./step-11-gltf-scene/) |
 
 ## Regenerating snapshots
 
