@@ -15,9 +15,9 @@ export function initApp() {
 const viewerDiv = document.getElementById('viewerDiv');
 
 const placement = {
-    coord: new itowns.Coordinates('EPSG:4326', 2.294694, 48.858093),
+    coord: new itowns.Coordinates('EPSG:4326', 2.349902, 48.852968),
     heading: 0,
-    range: 800,
+    range: 400,
     tilt: 45,
 };
 

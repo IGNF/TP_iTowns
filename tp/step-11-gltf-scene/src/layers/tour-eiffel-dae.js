@@ -14,9 +14,15 @@ function placeColladaOnGlobe(model, view, lon, lat, alt) {
     // ColladaLoader rotates Z-up → Y-up; iTowns ENU is Z-up (see ColladaLoader #24289)
     model.rotation.set(0, 0, 0);
     model.scale.multiplyScalar(VISIBILITY_SCALE);
+    model.updateMatrixWorld(true);
+
+    const yHalfLength = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()).y / 2;
 
     model.position.copy(coord.as(view.referenceCrs));
     model.lookAt(model.position.clone().add(coord.geodesicNormal));
+    model.rotateZ(Math.PI / 4);
+    model.translateY(-yHalfLength);
+    model.translateX(-yHalfLength);
     model.updateMatrixWorld(true);
 }
 

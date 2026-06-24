@@ -875,9 +875,15 @@ loader.load('./models/tour-eiffel/Tour_Eiffel.dae', (collada) => {
     // ColladaLoader rotates Z-up → Y-up; undo for iTowns Z-up (ENU)
     model.rotation.set(0, 0, 0);
     model.scale.multiplyScalar(250);
+    model.updateMatrixWorld(true);
+
+    const yHalfLength = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()).y / 2;
 
     model.position.copy(coord.as(view.referenceCrs));
     model.lookAt(model.position.clone().add(coord.geodesicNormal));
+    model.rotateZ(Math.PI / 4);
+    model.translateY(-yHalfLength);
+    model.translateX(-yHalfLength);
     model.updateMatrixWorld(true);
 
     view.scene.add(model);
@@ -923,9 +929,9 @@ The model lives in [`data/notre_dame_crowdsourced_photogrammetry/`](./data/notre
 
 iTowns provides `iGLTFLoader` (based on Three.js GLTFLoader). After loading, we:
 
-1. Convert WGS84 coordinates to the view's reference CRS (`EPSG:4978` on a `GlobeView`)
-2. Copy the resulting position to the model's `position`
-3. Align the model's Y-up axis with the local **geodesic normal** so it sits upright on the globe surface
+1. Scale the mesh to a realistic size (~130 m)
+2. Rotate Y-up → Z-up and shift the mesh so its base sits on the ENU origin (local Z = 0)
+3. Attach to an ENU anchor oriented with `OrientationUtils.quaternionFromEnuToGeocent`
 
 ```javascript
 const coord = new itowns.Coordinates('EPSG:4326', 2.349902, 48.852968, 35);
@@ -934,13 +940,23 @@ const loader = new itowns.iGLTFLoader();
 loader.load('./models/notre-dame/scene.gltf', (gltf) => {
     const model = gltf.scene;
 
-    // glTF is Y-up, iTowns is Z-up
-    model.rotateX(Math.PI / 2);
-    model.position.copy(coord.as(view.referenceCrs));
-    model.lookAt(model.position.clone().add(coord.geodesicNormal));
     model.updateMatrixWorld(true);
+    const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+    model.scale.multiplyScalar(130 / Math.max(size.x, size.y, size.z));
 
-    view.scene.add(model);
+    model.rotateX(Math.PI / 2);
+    model.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.set(-center.x, -center.y, -box.min.z);
+
+    const anchor = new THREE.Group();
+    anchor.add(model);
+    anchor.position.copy(coord.as(view.referenceCrs));
+    anchor.quaternion.copy(itowns.OrientationUtils.quaternionFromEnuToGeocent(coord));
+    anchor.updateMatrixWorld(true);
+
+    view.scene.add(anchor);
     view.notifyChange();
 });
 ```
@@ -963,7 +979,7 @@ Layers (`ColorLayer`, `FeatureGeometryLayer`, etc.) are designed for geospatial 
 
 The latest snapshot with all layers (Notre-Dame glTF and Tour Eiffel Collada) is [`tp/step-11-gltf-scene/`](./tp/step-11-gltf-scene/).
 
-**What you should see:** Both heritage models are toggled from the **Heritage** group. Fly to Notre-Dame to inspect the photogrammetry mesh, then to the Champ de Mars for the Eiffel Tower Collada model.
+**What you should see:** The camera starts close to Notre-Dame (400 m range). After the basemap loads, a textured photogrammetry mesh appears on the Île de la Cité. Both heritage models are toggled from the **Heritage** group — fly to the Champ de Mars to inspect the Tour Eiffel Collada model.
 
 ---
 
