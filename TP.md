@@ -12,7 +12,7 @@
 
 ## Introduction — What are we building and why?
 
-This lab walks through the construction of a **3D geographic viewer** for the Paris metropolitan area. Unlike a classic 2D web map (Leaflet, OpenLayers in flat mode), iTowns renders data on a **globe** with real terrain relief. Buildings can be extruded in 3D, and the camera can tilt to produce oblique views — similar to what you would expect from Google Earth, but entirely in the browser and powered by open French public data.
+This lab walks through the construction of a **3D geographic viewer** for the Paris metropolitan area. Unlike a classic 2D web map (Leaflet, OpenLayers in flat mode), iTowns renders data on a **globe** with real terrain elevation. Buildings can be extruded in 3D, and the camera can tilt to produce oblique views — similar to what you would expect from Google Earth, but entirely configurable, customizable and powered by open French public data.
 
 The demo serves two purposes:
 
@@ -46,7 +46,7 @@ Each layer has a **source** (where data comes from) and optionally a **style** (
 
 Think of it this way: **elevation** gives the globe its shape, **color** paints pictures and symbols on it, and **feature geometry** adds standing 3D objects.
 
-### Data formats we encounter
+### Data formats and services we encounter
 
 - **WMTS** — Web Map Tile Service. The IGN serves pre-rendered image tiles (orthophotos) and elevation grids (MNT) through standard XYZ tile URLs. iTowns requests only the tiles visible in the current view.
 - **GeoJSON** — A JSON format for geographic features (points, lines, polygons). Paris Data and Île-de-France Mobilités expose datasets as GeoJSON through REST APIs.
