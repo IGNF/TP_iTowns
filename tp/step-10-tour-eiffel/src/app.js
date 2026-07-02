@@ -1,5 +1,6 @@
 import * as itowns from 'itowns';
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import orthoConfig from './layers/ortho.json';
 import worldDtmConfig from './layers/world-dtm.json';
 import ignMntHighresConfig from './layers/ign-mnt-highres.json';
@@ -7,6 +8,7 @@ import { addLignesMetroTramLayer } from './layers/lignes-metro-tram.js';
 import { addGaresRatpLayer } from './layers/gares-ratp.js';
 import { addBatiments3DLayer } from './layers/batiments-3d.js';
 import { addCavesInondees1910Layer } from './layers/caves-inondees-1910.js';
+import { addParis3DTilesLayer } from './layers/paris-3dtiles.js';
 import { addTourEiffelDae } from './layers/tour-eiffel-dae.js';
 import { createLayerMenu } from './ui/layer-menu.js';
 import { setupWidgets } from './ui/widgets.js';
@@ -23,8 +25,10 @@ const placement = {
 
 const view = new itowns.GlobeView(viewerDiv, placement);
 
-const light = new THREE.AmbientLight(0x404040, 40);
-view.scene.add(light);
+view.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const pmremGenerator = new THREE.PMREMGenerator(view.renderer);
+view.scene.environment = pmremGenerator.fromScene(new RoomEnvironment()).texture;
+pmremGenerator.dispose();
 
 const layerMenuItems = [];
 
@@ -64,6 +68,16 @@ registerLayer(
     'Urban planning',
 ).catch((error) => {
     console.error('Failed to load 3D buildings:', error);
+});
+
+registerLayer(
+    'paris-3dtiles',
+    'Paris 3D Tiles',
+    ignLayersPromise.then(() => addParis3DTilesLayer(view)),
+    'Urban planning',
+    { defaultVisible: true },
+).catch((error) => {
+    console.error('Failed to load Paris 3D Tiles:', error);
 });
 
 registerLayer(

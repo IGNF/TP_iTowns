@@ -24,5 +24,5 @@ export function markAllTilesForUpdate(view) {
             tile.material.layersNeedUpdate = true;
         }
     }
-    view.notifyChange(true);
+    view.notifyChange();
 }

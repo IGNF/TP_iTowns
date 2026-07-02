@@ -42,6 +42,10 @@ export default (env) => ({
         static: [
             { directory: path.resolve(__dirname, 'public') },
             {
+                directory: path.resolve(__dirname, '../../data/3dtiles'),
+                publicPath: '/3dtiles',
+            },
+            {
                 directory: path.resolve(__dirname, '../../data/tour_eiffel'),
                 publicPath: '/models/tour-eiffel',
             },

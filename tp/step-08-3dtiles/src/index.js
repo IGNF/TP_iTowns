@@ -1,0 +1,111 @@
+import * as itowns from 'itowns';
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import orthoConfig from './layers/ortho.json';
+import worldDtmConfig from './layers/world-dtm.json';
+import ignMntHighresConfig from './layers/ign-mnt-highres.json';
+import { addLignesMetroTramLayer } from './layers/lignes-metro-tram.js';
+import { addGaresRatpLayer } from './layers/gares-ratp.js';
+import { addBatiments3DLayer } from './layers/batiments-3d.js';
+import { addCavesInondees1910Layer } from './layers/caves-inondees-1910.js';
+import { addParis3DTilesLayer } from './layers/paris-3dtiles.js';
+import { createLayerMenu } from './ui/layer-menu.js';
+import { setupWidgets } from './ui/widgets.js';
+
+const viewerDiv = document.getElementById('viewerDiv');
+
+const placement = {
+    coord: new itowns.Coordinates('EPSG:4326', 2.351828, 48.856578),
+    heading: 0,
+    range: 1200,
+    tilt: 45,
+};
+
+const view = new itowns.GlobeView(viewerDiv, placement);
+
+view.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const pmremGenerator = new THREE.PMREMGenerator(view.renderer);
+view.scene.environment = pmremGenerator.fromScene(new RoomEnvironment()).texture;
+pmremGenerator.dispose();
+
+const layerMenuItems = [];
+
+function addElevationLayer(config) {
+    const source = new itowns.WMTSSource(config.source);
+    return view.addLayer(new itowns.ElevationLayer(config.id, { ...config, source }));
+}
+
+function addColorLayer(config) {
+    const source = new itowns.WMTSSource(config.source);
+    return view.addLayer(new itowns.ColorLayer(config.id, { ...config, source }));
+}
+
+function registerLayer(id, label, promise, group, options = {}) {
+    layerMenuItems.push({
+        id,
+        label,
+        whenReady: promise,
+        group,
+        defaultVisible: options.defaultVisible,
+    });
+    return promise;
+}
+
+const ignLayersPromise = Promise.all([
+    addElevationLayer(worldDtmConfig),
+    addElevationLayer(ignMntHighresConfig),
+    addColorLayer(orthoConfig),
+]).catch((error) => {
+    console.error('Failed to load IGN layers:', error);
+});
+
+registerLayer(
+    'batiments-bdtopo',
+    '3D Buildings',
+    ignLayersPromise.then(() => addBatiments3DLayer(view)),
+    'Urban planning',
+).catch((error) => {
+    console.error('Failed to load 3D buildings:', error);
+});
+
+registerLayer(
+    'paris-3dtiles',
+    'Paris 3D Tiles',
+    ignLayersPromise.then(() => addParis3DTilesLayer(view)),
+    'Urban planning',
+    { defaultVisible: true },
+).catch((error) => {
+    console.error('Failed to load Paris 3D Tiles:', error);
+});
+
+registerLayer(
+    'lignes-ferre',
+    'Metro, tram and RER lines',
+    addLignesMetroTramLayer(view),
+    'Transport',
+).catch((error) => {
+    console.error('Failed to load metro, tram and RER lines:', error);
+});
+
+registerLayer(
+    'gares-ratp',
+    'RATP stations',
+    addGaresRatpLayer(view),
+    'Transport',
+).catch((error) => {
+    console.error('Failed to load RATP stations:', error);
+});
+
+registerLayer(
+    'caves-inondees-1910',
+    'Floodable basements (1910)',
+    addCavesInondees1910Layer(view),
+    'Risk',
+).catch((error) => {
+    console.error('Failed to load floodable basement zones:', error);
+});
+
+createLayerMenu(view, layerMenuItems);
+setupWidgets(view);
+
+window.view = view;
