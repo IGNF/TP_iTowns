@@ -1,4 +1,5 @@
 import * as itowns from 'itowns';
+import * as THREE from 'three';
 import orthoConfig from './layers/ortho.json';
 import worldDtmConfig from './layers/world-dtm.json';
 import ignMntHighresConfig from './layers/ign-mnt-highres.json';
@@ -21,6 +22,9 @@ const placement = {
 };
 
 const view = new itowns.GlobeView(viewerDiv, placement);
+
+const light = new THREE.AmbientLight(0x404040, 40);
+view.scene.add(light);
 
 const layerMenuItems = [];
 
