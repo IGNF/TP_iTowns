@@ -842,7 +842,7 @@ itowns_tp/
 
 ---
 
-## Step 10 — Collada 3D model (Tour Eiffel)
+## Step 9 — Collada 3D model (Tour Eiffel)
 
 > **Code:** [`tp/step-10-tour-eiffel/`](./tp/step-10-tour-eiffel/)
 
@@ -904,7 +904,7 @@ loader.load('./models/tour-eiffel/Tour_Eiffel.dae', (collada) => {
 
 ---
 
-## Step 11 — glTF 3D model (Notre-Dame photogrammetry)
+## Step 10 — glTF 3D model (Notre-Dame photogrammetry)
 
 > **Code:** [`tp/step-11-gltf-scene/`](./tp/step-11-gltf-scene/)
 
