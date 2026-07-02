@@ -21,7 +21,6 @@ function placeColladaOnGlobe(model, view, lon, lat, alt) {
     model.position.copy(coord.as(view.referenceCrs));
     model.lookAt(model.position.clone().add(coord.geodesicNormal));
     model.rotateZ(Math.PI / 4);
-    model.rotateX(Math.PI / 4);
     model.translateY(-yHalfLength);
     model.translateX(-yHalfLength);
     model.updateMatrixWorld(true);
